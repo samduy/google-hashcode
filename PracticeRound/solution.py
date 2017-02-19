@@ -1,10 +1,20 @@
 #!/bin/python
 
+import sys
+
 # Type of invalid piece
 M = -1
 T = -2
 
-input = open("medium.in").readlines()
+# Handle parameters
+if (len(sys.argv)) < 3:
+  sys.stderr.write("Usage: %s input_file output_file\n" % sys.argv[0]);
+  sys.exit()
+
+iFile = sys.argv[1]
+oFile = sys.argv[2]
+
+input = open(iFile).readlines()
 
 setting = input[0].split()
 R = int(setting[0])
@@ -84,7 +94,7 @@ def count(c, piece):
 
 # Print slices to file
 def output(fined_pieces):
-  f = open("sol-medium-1.out", "w")
+  f = open(oFile, "w")
   # write total number of slices
   f.write(str(len(fined_pieces))+"\n")
 
