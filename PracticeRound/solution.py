@@ -26,10 +26,10 @@ def cut(pizza, piece_rect):
     for j in range(0,R,h):
       c1 = i;
       c2 = i+w-1
-      if (c2 > C): c2 = C
+      if (c2 > C-1): c2 = C-1
       r1 = j;
       r2 = j+h-1
-      if (r2 > R): r2 = R
+      if (r2 > R-1): r2 = R-1
       # a piece
       p = [r1, c1, r2, c2]
       # add to the list
