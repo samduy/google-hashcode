@@ -22,8 +22,14 @@ C = int(setting[1])
 L = int(setting[2])
 H = int(setting[3])
 
+# Main input data: pizza to be cut
 pizza = input[1:]
 
+# Output data: slices/pieces after cut
+gPieces = []
+
+# Function: cutting pizza with specified shape of piece
+# Shape of piece: a rectangular
 def cut(pizza, piece_rect):
   global R,C
 
@@ -48,6 +54,8 @@ def cut(pizza, piece_rect):
   return pieces
 
 # Refine the cut, filter only the pieces that validate
+# The validated piece: qualify the minumum number of
+# each ingredient (L) and maximum total number of them (H)
 def refine_cut(pieces):
     score = 0
     ps = []
@@ -104,6 +112,9 @@ def output(fined_pieces):
   f.flush()
   f.close()
 
+
+# MAIN PROGRAM
+
 #print pizza
 #print "L="+ str(L)
 
@@ -111,7 +122,14 @@ def output(fined_pieces):
 #print count("M",[0,0,1,1])
 #print count("T",[0,0,1,1])
 
-cut, score = refine_cut(cut(pizza, [1,H]))
-#print cut
+# Dumpiest cut (no improvement)
+gPieces, score = refine_cut(cut(pizza, [1,H]))
 print score
-output(cut)
+
+# Some improvement
+#gPieces, score = improve_cut(gPieces)
+#print cut
+#print score
+
+# Process: output result to file
+output(gPieces)
