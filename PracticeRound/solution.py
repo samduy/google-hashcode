@@ -57,21 +57,29 @@ def cut(pizza, piece_rect):
 # The validated piece: qualify the minumum number of
 # each ingredient (L) and maximum total number of them (H)
 def refine_cut(pieces):
-    score = 0
     ps = []
 
     for p in pieces:
       if (check(p) == 1): 
 	ps.append(p)
-	score = score + pie_size(p)
 
-    return ps, score
+    return ps
 
 # Calculate the size of the cut
 def pie_size(p):
   r = p[3] - p[1] + 1
   c = p[2] - p[0] + 1
   return r*c
+
+# Calculate possible score in a set of slices
+def cal_score(pieces):
+  score = 0
+
+  for p in pieces:
+    if (check(p) == 1):
+      score = score + pie_size(p)
+
+  return score
 
 # Check if a piece is validated or not
 # Return 1 if OK
@@ -112,8 +120,132 @@ def output(fined_pieces):
   f.flush()
   f.close()
 
+## Some ALGORITHM to improve the cut result
 
-# MAIN PROGRAM
+# Identify the neighbour cells (left, right, up, down)
+def piece_left_n_cells(p, n):
+  r1,c1,r2,c2 = p[0],p[1],p[2],p[3]
+
+  if (c1-n) < 0: return None
+  else: 
+    return [r1, c1-n, r2, c1-1]
+
+def piece_right_n_cells(p, n):
+  global C
+  r1,c1,r2,c2 = p[0],p[1],p[2],p[3]
+
+  if (c2+n) > C: return None
+  else: 
+    return [r1, c2+1, r2, c2+n]
+
+def piece_up_n_cells(p, n):
+  r1,c1,r2,c2 = p[0],p[1],p[2],p[3]
+  if (r1-n) < 0: return None
+  else: 
+    return [r1-n, c1, r1-1, c2]
+
+def piece_down_n_cells(p, n):
+  global R
+  r1,c1,r2,c2 = p[0],p[1],p[2],p[3]
+
+  if (r2+n) > R: return None
+  else: 
+    return [r2+1, c1, r2+n, c2]
+
+# Check if the cells is already cut (belong to validate pieces)
+# return 1 if the cells have not been cut yet
+def is_available_piece(p):
+  global gPieces
+
+  if (p == None): return None
+
+  r1,c1,r2,c2 = p[0],p[1],p[2],p[3]
+
+  for p in gPieces:
+    if ( (c2 < p[1]) or (c1 > p[3]) ): continue
+    elif ( (r2 < p[0]) or (r1 > p[2]) ): continue
+    else: 
+      break
+      return 0
+
+  return 1
+
+# Merge two slices into one new slice
+def merge_piece(p1, p2):
+  # vertically
+  if ((p1[1] == p2[1]) and (p1[3]==p2[3])):
+    r1 = min(p1[0],p2[0],p1[2],p2[2])
+    r2 = max(p1[0],p2[0],p1[2],p2[2])
+    return [r1, p1[1], r2, p2[3]]
+  # horizontally
+  elif ((p1[0] == p2[0]) and (p1[2]==p2[2])):
+    c1 = min(p1[1],p2[1],p1[3],p2[3])
+    c2 = max(p1[1],p2[1],p1[3],p2[3])
+    return [p1[0], c1, p2[2], c2]
+  else: return p1
+
+# Cut any big slices with best strategy
+# check to make sure it return best result possible
+# TODO:
+def best_cut(big_pieces):
+  #print big_pieces
+  row = big_pieces[2] - big_pieces[0] + 1
+  #print "Row:" + str(row)
+  if (row > H): row = H
+  elif (row < 1): row = 1
+  return refine_cut(cut(big_pieces, [row, H/row]))
+
+# IMPROVE CUTTING STRATEGY
+def improve_cut():
+  global H, gPieces
+
+  cut_pieces = []
+  new_pieces = []
+
+  for piece in gPieces:
+    cut_pieces.append(piece)
+
+  for pie in cut_pieces:
+    p = pie
+    max_row = H
+    count = 1
+
+    # original score
+    orig_score = pie_size(p)
+    score = 0
+
+    # merge with not-cut cells upper
+    p_up = piece_up_n_cells(p,1)
+    while is_available_piece(p_up):
+      if (count >= max_row): break
+      count = count + 1
+      p = merge_piece(p, p_up)
+      p_up = piece_up_n_cells(p,1)
+    # merge with not-cut cells lower
+    p_down = piece_down_n_cells(p,1)
+    while is_available_piece(p_down):
+      if (count >= max_row): break
+      count = count + 1
+      p = merge_piece(p, p_down)
+      p_down = piece_down_n_cells(p,1)
+
+    #print "Count:"+ str(count)
+
+    # cut after merging
+    best_slices = best_cut(p)
+
+    if (best_slices != None):
+      # check if it is improvement or not
+      score = cal_score(best_slices)
+      if (orig_score < score):
+	#print "Origin score:" + str(orig_score)
+	#print "After score:" + str(score)
+        del(gPieces[gPieces.index(pie)]) # delete p from gPieces
+        for q in best_slices:
+	  if (q != None): 
+	    if (q not in gPieces): gPieces.append(q)
+  
+## MAIN PROGRAM
 
 #print pizza
 #print "L="+ str(L)
@@ -123,13 +255,13 @@ def output(fined_pieces):
 #print count("T",[0,0,1,1])
 
 # Dumpiest cut (no improvement)
-gPieces, score = refine_cut(cut(pizza, [1,H]))
-print score
+gPieces = refine_cut(cut(pizza, [1,H]))
+print cal_score(gPieces)
 
 # Some improvement
-#gPieces, score = improve_cut(gPieces)
-#print cut
-#print score
+improve_cut()
+#print gPieces
+print cal_score(gPieces)
 
 # Process: output result to file
 output(gPieces)
