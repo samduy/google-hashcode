@@ -154,19 +154,19 @@ def piece_down_n_cells(p, n):
 
 # Check if the cells is already cut (belong to validate pieces)
 # return 1 if the cells have not been cut yet
-def is_available_piece(p):
+def is_available_piece(pie):
   global gPieces
 
-  if (p == None): return None
+  if (pie == None): return None
 
-  r1,c1,r2,c2 = p[0],p[1],p[2],p[3]
+  r1,c1,r2,c2 = pie[0],pie[1],pie[2],pie[3]
 
   for p in gPieces:
     if ( (c2 < p[1]) or (c1 > p[3]) ): continue
     elif ( (r2 < p[0]) or (r1 > p[2]) ): continue
     else: 
-      break
       return 0
+      break
 
   return 1
 
@@ -231,20 +231,21 @@ def improve_cut():
 
     #print "Count:"+ str(count)
 
-    # cut after merging
-    best_slices = best_cut(p)
-
-    if (best_slices != None):
-      # check if it is improvement or not
-      score = cal_score(best_slices)
-      if (orig_score < score):
-	#print "Origin score:" + str(orig_score)
-	#print "After score:" + str(score)
-        del(gPieces[gPieces.index(pie)]) # delete p from gPieces
-        for q in best_slices:
-	  if (q != None): 
-	    if (q not in gPieces): gPieces.append(q)
+    if (p != pie):
+      # cut after merging
+      best_slices = best_cut(p)
   
+      if (best_slices != None):
+        # check if it is improvement or not
+        score = cal_score(best_slices)
+        if (orig_score < score):
+  	#print "Origin score:" + str(orig_score)
+  	#print "After score:" + str(score)
+          del(gPieces[gPieces.index(pie)]) # delete p from gPieces
+          for q in best_slices:
+	    if (q != None): 
+	      if (q not in gPieces): gPieces.append(q)
+    
 ## MAIN PROGRAM
 
 #print pizza
